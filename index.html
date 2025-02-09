@@ -1,0 +1,615 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ley de Senos - Software Educativo</title>
+    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r134/three.min.js"></script>
+    <style>
+        :root {
+            /* Modo Claro */
+            --bg-light: #f0f4f8;
+            --text-light: #1a1a1a;
+            --primary-light: #2b6cb0;
+            --secondary-light: #4299e1;
+            --accent-light: #3182ce;
+            --card-bg-light: rgba(255, 255, 255, 0.9);
+            --download-gradient-light: linear-gradient(135deg, #2b6cb0, #4299e1);
+
+            /* Modo Oscuro */
+            --bg-dark: #0a1929;
+            --text-dark: #e0e0e0;
+            --primary-dark: #60a5fa;
+            --secondary-dark: #3b82f6;
+            --accent-dark: #2563eb;
+            --card-bg-dark: rgba(15, 23, 42, 0.9);
+            --download-gradient-dark: linear-gradient(135deg, #3b82f6, #60a5fa);
+        }
+
+        [data-theme="light"] {
+            --bg-color: var(--bg-light);
+            --text-color: var(--text-light);
+            --primary-color: var(--primary-light);
+            --secondary-color: var(--secondary-light);
+            --accent-color: var(--accent-light);
+            --card-bg: var(--card-bg-light);
+            --download-gradient: var(--download-gradient-light);
+        }
+
+        [data-theme="dark"] {
+            --bg-color: var(--bg-dark);
+            --text-color: var(--text-dark);
+            --primary-color: var(--primary-dark);
+            --secondary-color: var(--secondary-dark);
+            --accent-color: var(--accent-dark);
+            --card-bg: var(--card-bg-dark);
+            --download-gradient: var(--download-gradient-dark);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            transition: all 0.3s ease;
+        }
+
+        body {
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        #scene-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100vh;
+            z-index: 0;
+            opacity: 0.2;
+        }
+
+        .theme-toggle {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1000;
+            background: var(--card-bg);
+            border: none;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            font-size: 24px;
+            transition: transform 0.3s ease;
+        }
+
+        .theme-toggle:hover {
+            transform: scale(1.1) rotate(180deg);
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        .header {
+            text-align: center;
+            padding: 4rem 0;
+        }
+
+        .title {
+            font-size: 4rem;
+            background: var(--download-gradient);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            margin-bottom: 1rem;
+            font-weight: 700;
+        }
+
+        .subtitle {
+            font-size: 1.5rem;
+            color: var(--secondary-color);
+            margin-bottom: 2rem;
+        }
+
+        .card {
+            background: var(--card-bg);
+            border-radius: 20px;
+            padding: 2.5rem;
+            margin: 2rem 0;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(10px);
+            text-align: justify;
+        }
+
+        .section-title {
+            color: var(--primary-color);
+            font-size: 2rem;
+            margin-bottom: 1.5rem;
+            text-align: center;
+        }
+
+        .topics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 2rem;
+            margin: 3rem 0;
+        }
+
+        .topic-card {
+            background: var(--card-bg);
+            border-radius: 15px;
+            padding: 2rem;
+            transition: all 0.3s ease;
+            height: 100%;
+            text-align: justify;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .topic-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: var(--download-gradient);
+            transform: scaleX(0);
+            transition: transform 0.3s ease;
+        }
+
+        .topic-card:hover::before {
+            transform: scaleX(1);
+        }
+
+        .topic-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+        }
+
+        .topic-title {
+            color: var(--primary-color);
+            font-size: 1.25rem;
+            margin-bottom: 1rem;
+            text-align: center;
+        }
+
+        .download-section {
+            text-align: center;
+            padding: 4rem 0;
+        }
+
+        .download-button {
+            display: inline-block;
+            padding: 1.5rem 4rem;
+            font-size: 1.25rem;
+            font-weight: bold;
+            color: white;
+            background: var(--download-gradient);
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            text-decoration: none;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            position: relative;
+            overflow: hidden;
+            z-index: 1;
+        }
+
+        .download-button::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transform: translateX(-100%);
+            transition: transform 0.6s ease;
+            z-index: -1;
+        }
+
+        .download-button:hover::before {
+            transform: translateX(100%);
+        }
+
+        .download-button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .credits {
+            background: var(--card-bg);
+            padding: 4rem 0;
+            margin-top: 4rem;
+            text-align: center;
+            border-radius: 20px;
+        }
+
+        .contact-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 2rem;
+            margin-top: 2rem;
+            padding: 0 2rem;
+        }
+
+        .contact-item {
+            padding: 1.5rem;
+            background: var(--bg-color);
+            border-radius: 15px;
+            transition: transform 0.3s ease;
+        }
+
+        .contact-item:hover {
+            transform: scale(1.05);
+        }
+
+        .formula {
+            font-size: 2rem;
+            text-align: center;
+            margin: 2rem 0;
+            color: var(--accent-color);
+            font-family: 'Times New Roman', Times, serif;
+            padding: 2rem;
+            background: var(--bg-color);
+            border-radius: 15px;
+            box-shadow: inset 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 1rem;
+            }
+
+            .title {
+                font-size: 2.5rem;
+            }
+
+            .subtitle {
+                font-size: 1.25rem;
+            }
+
+            .section-title {
+                font-size: 1.75rem;
+            }
+
+            .download-button {
+                padding: 1.25rem 3rem;
+                font-size: 1.1rem;
+            }
+        }
+
+        @keyframes float {
+            0%, 100% {
+                transform: translateY(0);
+            }
+            50% {
+                transform: translateY(-10px);
+            }
+        }
+
+        .floating {
+            animation: float 3s ease-in-out infinite;
+        }
+        .geometric-shapes {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .shape {
+            position: absolute;
+            opacity: 0.1;
+            animation: floatShape 15s infinite linear;
+        }
+
+        .line {
+            position: absolute;
+            background: linear-gradient(90deg, transparent, var(--accent-color), transparent);
+            height: 1px;
+            width: 100px;
+            opacity: 0.2;
+            animation: moveLine 8s infinite linear;
+        }
+
+        .triangle {
+            width: 0;
+            height: 0;
+            border-left: 25px solid transparent;
+            border-right: 25px solid transparent;
+            border-bottom: 43.3px solid var(--primary-color);
+        }
+
+        .square {
+            width: 30px;
+            height: 30px;
+            border: 2px solid var(--secondary-color);
+            transform: rotate(45deg);
+        }
+
+        .circle {
+            width: 30px;
+            height: 30px;
+            border: 2px solid var(--accent-color);
+            border-radius: 50%;
+        }
+
+        @keyframes floatShape {
+            0% {
+                transform: translate(0, 0) rotate(0deg);
+            }
+            25% {
+                transform: translate(100px, 100px) rotate(90deg);
+            }
+            50% {
+                transform: translate(200px, 0) rotate(180deg);
+            }
+            75% {
+                transform: translate(100px, -100px) rotate(270deg);
+            }
+            100% {
+                transform: translate(0, 0) rotate(360deg);
+            }
+        }
+
+        @keyframes moveLine {
+            0% {
+                transform: translateX(-100%) rotate(45deg);
+                opacity: 0;
+            }
+            50% {
+                opacity: 0.2;
+            }
+            100% {
+                transform: translateX(200%) rotate(45deg);
+                opacity: 0;
+            }
+        }
+
+        /* Añadir efecto de brillo a las tarjetas */
+        .topic-card::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 200%;
+            height: 100%;
+            background: linear-gradient(
+                    60deg,
+                    transparent,
+                    transparent,
+                    rgba(255, 255, 255, 0.1),
+                    transparent,
+                    transparent
+            );
+            transform: translateX(-100%);
+            animation: cardShine 8s infinite;
+        }
+
+        @keyframes cardShine {
+            0% {
+                transform: translateX(-100%) rotate(45deg);
+            }
+            20%, 100% {
+                transform: translateX(100%) rotate(45deg);
+            }
+        }
+    </style>
+</head>
+<body data-theme="dark">
+<button class="theme-toggle" id="themeToggle">
+    🌓
+</button>
+
+<div id="scene-container"></div>
+
+<div class="container">
+    <header class="header" data-aos="fade-down">
+        <h1 class="title">Trigonometría en Acción</h1>
+        <p class="subtitle">Software Educativo Interactivo</p>
+    </header>
+
+    <section class="card" data-aos="fade-up">
+        <h2 class="section-title">Resumen</h2>
+        <p>La Ley de Senos es un teorema fundamental en trigonometría que establece una relación entre los lados y los ángulos de un triángulo cualquiera. Esta ley es particularmente útil cuando se trabaja con triángulos oblicuángulos, donde no se puede aplicar directamente la trigonometría de triángulos rectángulos.</p>
+        <div class="formula floating">
+            a/sen(A) = b/sen(B) = c/sen(C) = 2R
+        </div>
+        <p>Donde a, b, c son los lados del triángulo, A, B, C son los ángulos opuestos a estos lados respectivamente, y R es el radio del círculo circunscrito al triángulo.</p>
+    </section>
+
+    <section class="card" data-aos="fade-up">
+        <h2 class="section-title">Características de Software</h2>
+        <p><h2 class="section-title">¡Importante!</h2> Al descargar el instalador ejecutar como Administrador</p>
+    </section>
+
+    <section class="topics-grid">
+        <div class="topic-card" data-aos="fade-up" data-aos-delay="100">
+            <h3 class="topic-title">Teoría</h3>
+            <p>Fundamentos matemáticos completos de la Ley de Senos, incluyendo demostraciones, propiedades y casos especiales. Comprende la base teórica necesaria para dominar este concepto trigonométrico fundamental.</p>
+        </div>
+
+        <div class="topic-card" data-aos="fade-up" data-aos-delay="200">
+            <h3 class="topic-title">Ejercicios Resueltos</h3>
+            <p>Colección completa de ejercicios interactivos con diferentes niveles de dificultad. Incluye problemas resueltos paso a paso y ejercicios de autoevaluación para reforzar el aprendizaje.</p>
+        </div>
+
+        <div class="topic-card" data-aos="fade-up" data-aos-delay="300">
+            <h3 class="topic-title">Triangulo Interactivo</h3>
+            <p>Herramienta avanzada para resolver triángulos de forma interactiva desde sus vértices utilizando la Ley de Senos. Visualización en tiempo real de los cálculos y resultados, con explicaciones detalladas de cada paso.</p>
+        </div>
+
+        <div class="topic-card" data-aos="fade-up" data-aos-delay="300">
+            <h3 class="topic-title">Calculadora</h3>
+            <p>Herramienta avanzada para resolver triángulos digitando algunos datos manualmente con dos casos utilizando la Ley de Senos. Visualización en tiempo real de los cálculos y resultados, con explicaciones detalladas de cada paso.</p>
+        </div>
+
+        <div class="topic-card" data-aos="fade-up" data-aos-delay="400">
+            <h3 class="topic-title">Aplicaciones en la Vida Real</h3>
+            <p>Ejemplos prácticos y casos de estudio que demuestran la aplicación de la Ley de Senos en situaciones reales, incluyendo topografía, navegación, arquitectura e ingeniería.</p>
+        </div>
+
+        <div class="topic-card" data-aos="fade-up" data-aos-delay="500">
+            <h3 class="topic-title">Triángulos Oblicuángulos</h3>
+            <p>Estudio específico de triángulos no rectángulos y sus propiedades. Análisis detallado de casos especiales y métodos de resolución utilizando la Ley de Senos.</p>
+        </div>
+    </section>
+
+    <section class="download-section" data-aos="zoom-in">
+        <a href="https://drive.google.com/file/d/1TEEp_83xkm_PszsdvyjnQ3IFp8aVDtyj/view?usp=sharing" class="download-button">
+            Descargar Software
+        </a>
+    </section>
+
+    <section class="credits" data-aos="fade-up">
+        <h2 class="section-title">Créditos y Contacto</h2>
+        <div class="contact-grid">
+            <div class="contact-item">
+                <h3>Desarrollador</h3>
+                <p>Edna Herrera Alonso</p>
+                <p>Oscar Sanchez Guzman</p>
+            </div>
+            <div class="contact-item">
+                <h3>Contacto</h3>
+                <p>1073130499@mail.edu.co</p>
+                <p>11258931@mail.edu.co</p>
+            </div>
+            <div class="contact-item">
+                <h3>Versión</h3>
+                <p>1.0.0</p>
+            </div>
+            <div class="contact-item">
+                <h3>Licencia</h3>
+                <p>DIAC, sw.</p>
+            </div>
+        </div>
+    </section>
+</div>
+<div class="geometric-shapes">
+    <!-- Líneas animadas -->
+    <div class="line" style="top: 20%; left: 0;"></div>
+    <div class="line" style="top: 40%; left: -50%;"></div>
+    <div class="line" style="top: 60%; left: -25%;"></div>
+    <div class="line" style="top: 80%; left: -75%;"></div>
+
+    <!-- Triángulos -->
+    <div class="shape triangle" style="top: 15%; left: 10%;"></div>
+    <div class="shape triangle" style="top: 75%; left: 85%;"></div>
+    <div class="shape triangle" style="top: 45%; left: 90%;"></div>
+
+    <!-- Cuadrados -->
+    <div class="shape square" style="top: 25%; left: 80%;"></div>
+    <div class="shape square" style="top: 85%; left: 15%;"></div>
+    <div class="shape square" style="top: 35%; left: 25%;"></div>
+
+    <!-- Círculos -->
+    <div class="shape circle" style="top: 65%; left: 75%;"></div>
+    <div class="shape circle" style="top: 15%; left: 45%;"></div>
+    <div class="shape circle" style="top: 85%; left: 35%;"></div>
+</div>
+<script>
+    // Añadir después del script existente
+    function createRandomShape() {
+        const shapes = ['triangle', 'square', 'circle'];
+        const shape = document.createElement('div');
+        shape.className = `shape ${shapes[Math.floor(Math.random() * shapes.length)]}`;
+        shape.style.top = `${Math.random() * 100}%`;
+        shape.style.left = `${Math.random() * 100}%`;
+        shape.style.animationDelay = `${Math.random() * 5}s`;
+        document.querySelector('.geometric-shapes').appendChild(shape);
+    }
+
+    // Crear formas adicionales cada cierto tiempo
+    setInterval(createRandomShape, 10000);
+
+    // Crear formas iniciales
+    for(let i = 0; i < 10; i++) {
+        createRandomShape();
+    }
+</script>
+<script>
+    // Inicialización de AOS
+    AOS.init({
+        duration: 1000,
+        once: true,
+        offset: 100
+    });
+
+    // Configuración de Three.js
+    const scene = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+    const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    document.getElementById('scene-container').appendChild(renderer.domElement);
+
+    // Creación de partículas
+    const particlesGeometry = new THREE.BufferGeometry();
+    const particlesCount = 2000;
+    const posArray = new Float32Array(particlesCount * 3);
+
+    for(let i = 0; i < particlesCount * 3; i++) {
+        posArray[i] = (Math.random() - 0.5) * 50;
+    }
+
+    particlesGeometry.setAttribute('position', new THREE.BufferAttribute(posArray, 3));
+    const particlesMaterial = new THREE.PointsMaterial({
+        size: 0.005,
+        color: '#4299e1'
+    });
+
+    const particlesMesh = new THREE.Points(particlesGeometry, particlesMaterial);
+    scene.add(particlesMesh);
+
+    camera.position.z = 30;
+
+    // Animación
+    function animate() {
+        requestAnimationFrame(animate);
+        particlesMesh.rotation.y += 0.001;
+        particlesMesh.rotation.x += 0.001;
+        renderer.render(scene, camera);
+    }
+
+    animate();
+
+    // Cambio de tema
+    const themeToggle = document.getElementById('themeToggle');
+    const body = document.body;
+
+    themeToggle.addEventListener('click', () => {
+        const currentTheme = body.getAttribute('data-theme');
+        const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+        body.setAttribute('data-theme', newTheme);
+
+        // Actualizar color de partículas
+        particlesMaterial.color.set(newTheme === 'light' ? '#2b6cb0' : '#4299e1');
+    });
+
+    // Responsive
+    window.addEventListener('resize', () => {
+        camera.aspect = window.innerWidth / window.innerHeight;
+        camera.updateProjectionMatrix();
+        renderer.setSize(window.innerWidth, window.innerHeight);
+    });
+</script>
+</body>
+</html>
